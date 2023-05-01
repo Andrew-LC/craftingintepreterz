@@ -1,0 +1,10 @@
+* LOX 
+  :PROPERTIES:
+  :Created: <2023-05-01 Mon>
+  :END:
+
+  There are two main techniques to manage memory allocation:
+  - Reference counting
+  - Tracing garbage collection
+
+  

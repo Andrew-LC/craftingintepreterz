@@ -1,0 +1,8 @@
+* Scanning 
+  :PROPERTIES:
+  :Created: <2023-05-01 Mon>
+  :END:
+
+  It basically takes the source code and splits each characters into smaller chunks that make up the grammer of the programming language.
+  It's also called as lexial analysis and the chunks are called tokens.
+
