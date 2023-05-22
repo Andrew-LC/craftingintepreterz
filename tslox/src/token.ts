@@ -1,5 +1,14 @@
 import { TokenType } from "./tokens";
 
+/*
+  Token {
+    type,
+    lexeme,
+    literal,
+    line
+  }
+*/
+
 export class Token {
   type: TokenType
   lexeme: string
