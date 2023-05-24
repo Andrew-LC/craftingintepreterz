@@ -1,0 +1,4 @@
+var name = "andrew"
+if(name == "andrew") {
+  print "andrew"
+}

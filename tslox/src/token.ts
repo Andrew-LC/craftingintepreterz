@@ -12,7 +12,7 @@ import { TokenType } from "./tokens";
 export class Token {
   type: TokenType
   lexeme: string
-  literal: object
+  literal: object | null
   line: number
 
   constructor(type: TokenType, lexeme: string, literal: object, line: number) {

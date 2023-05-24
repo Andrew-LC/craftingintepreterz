@@ -1,6 +1,6 @@
-import { Token } from "./Token"
-import { TokenType } from "./tokens"
-import { error } from './error'
+import { Token } from "./Token";
+import { TokenType } from "./tokens";
+import { error } from './error';
 
 export class Scanner {
   private source: string;
@@ -35,45 +35,46 @@ export class Scanner {
     const c = this.advance();
     switch (c) {
       case '(':
-        this.addToken(TokenType.LEFT_PAREN)
+        this.addToken(TokenType.LEFT_PAREN);
         break;
       case ')':
-        this.addToken(TokenType.RIGHT_PAREN)
+        this.addToken(TokenType.RIGHT_PAREN);
         break;
       case '{':
-        this.addToken(TokenType.LEFT_BRACE)
+        this.addToken(TokenType.LEFT_BRACE);
         break;
       case '}':
-        this.addToken(TokenType.RIGHT_BRACE)
+        this.addToken(TokenType.RIGHT_BRACE);
         break;
       case ',':
-        this.addToken(TokenType.COMMA)
+        this.addToken(TokenType.COMMA);
         break;
       case '.':
-        this.addToken(TokenType.DOT)
+        this.addToken(TokenType.DOT);
         break;
       case '-':
-        this.addToken(TokenType.MINUS)
+        this.addToken(TokenType.MINUS);
         break;
       case '+':
-        this.addToken(TokenType.PLUS)
+        this.addToken(TokenType.PLUS);
         break;
       case ';':
-        this.addToken(TokenType.SEMICOLON)
+        this.addToken(TokenType.SEMICOLON);
         break;
       case '*':
+        this.addToken(TokenType.STAR);
         break;
       case '!':
-        this.addToken(this.match("=") ? TokenType.BANG_EQUAL : TokenType.BANG)
+        this.addToken(this.match('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
         break;
       case '=':
-        this.addToken(this.match("=") ? TokenType.BANG_EQUAL : TokenType.BANG)
+        this.addToken(this.match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
         break;
       case '<':
-        this.addToken(this.match("=") ? TokenType.BANG_EQUAL : TokenType.BANG)
+        this.addToken(this.match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
         break;
       case '>':
-        this.addToken(this.match("=") ? TokenType.BANG_EQUAL : TokenType.BANG)
+        this.addToken(this.match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
         break;
       case '/':
         if (this.match('/')) {
@@ -90,14 +91,16 @@ export class Scanner {
       case '\n':
         this.line++;
         break;
-      case '"': this.string(); break;
+      case '"':
+        this.string();
+        break;
       default:
         if (this.isDigit(c)) {
-          this.number()
+          this.number();
         } else if (this.isAlpha(c)) {
           this.identifier();
         } else {
-          error(this.line, "Unexpected character.")
+          error(this.line, "Unexpected character.");
         }
         break;
     }
@@ -105,13 +108,13 @@ export class Scanner {
 
   private identifier(): void {
     while (this.isAlphaNumeric(this.peek())) this.advance();
-    this.addToken(TokenType.IDENTIFIER)
+    this.addToken(TokenType.IDENTIFIER);
   }
 
   private isAlpha(c: string): boolean {
     return (c >= 'a' && c <= 'z') ||
       (c >= 'A' && c <= 'Z') ||
-      c == '_';
+      c === '_';
   }
 
   private isAlphaNumeric(c: string): boolean {
@@ -121,21 +124,22 @@ export class Scanner {
   private number() {
     while (this.isDigit(this.peek())) this.advance();
     // Look for a fractional part.
-    if (this.peek() == '.' && this.isDigit(this.peekNext())) {
+    if (this.peek() === '.' && this.isDigit(this.peekNext())) {
       // Consume the "."
       this.advance();
       while (this.isDigit(this.peek())) this.advance();
     }
     this.addToken(TokenType.NUMBER,
-      parseInt(`${this.source.substring(this.start, this.current)}`));
+      this.source.substring(this.start, this.current));
   }
+
   private isDigit(c: string) {
     return c >= '0' && c <= '9';
   }
 
   private string() {
     while (this.peek() !== '"' && !this.isAtEnd()) {
-      if (this.peek() == '\n') this.line++;
+      if (this.peek() === '\n') this.line++;
       this.advance();
     }
 
@@ -152,7 +156,7 @@ export class Scanner {
 
   private match(expected: string) {
     if (this.isAtEnd()) return false;
-    if (this.source.charAt(this.current) != expected) return false;
+    if (this.source.charAt(this.current) !== expected) return false;
 
     this.current++;
     return true;
@@ -160,7 +164,7 @@ export class Scanner {
 
   private peek(): string {
     if (this.isAtEnd()) return '\0';
-    return this.source.charAt(this.current)
+    return this.source.charAt(this.current);
   }
 
   private peekNext() {
@@ -172,11 +176,15 @@ export class Scanner {
     return this.source.charAt(this.current++);
   }
 
-  private addToken(type: TokenType, text?: string, literal?: object): void {
+  private addToken(type: TokenType, text?: string, literal?: object | null): void {
     if (!literal) {
-      this.addToken(type, {});
+      this.tokens.push(new Token(type, text || '', {}, this.line));
+    } else {
+      this.tokens.push(new Token(type, text || '', literal, this.line));
     }
-    //const text: string = this.source.substring(this.start, this.current);
-    this.tokens.push(new Token(type, text, literal, this.line));
+  }
+
+  allTokens(): void {
+    console.log(this.tokens);
   }
 }
