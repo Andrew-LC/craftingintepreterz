@@ -1,4 +1,2 @@
-var name = "andrew"
-if(name == "andrew") {
-  print "andrew"
-}
+var or
+var orchid

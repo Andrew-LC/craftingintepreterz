@@ -1,6 +1,7 @@
 import { Token } from "./Token";
-import { TokenType } from "./tokens";
+import { TokenType, keywords } from "./tokens";
 import { error } from './error';
+
 
 export class Scanner {
   private source: string;
@@ -8,6 +9,7 @@ export class Scanner {
   private start: number;
   private current: number;
   private line: number;
+
 
   constructor(source: string) {
     this.source = source;
@@ -29,6 +31,94 @@ export class Scanner {
 
   private isAtEnd(): boolean {
     return this.current >= this.source.length;
+  }
+
+  private identifier(): void {
+    while (this.isAlphaNumeric(this.peek())) this.advance();
+    let text: string = this.source.substring(this.start, this.current);
+    let type: TokenType = keywords.get(text);
+    if (type == undefined) {
+      type = TokenType.IDENTIFIER;
+    }
+    this.addToken(type);
+  }
+
+  private isAlpha(c: string): boolean {
+    return (c >= 'a' && c <= 'z') ||
+      (c >= 'A' && c <= 'Z') ||
+      c === '_';
+  }
+
+  private isAlphaNumeric(c: string): boolean {
+    return this.isAlpha(c) || this.isDigit(c);
+  }
+
+  private number() {
+    while (this.isDigit(this.peek())) this.advance();
+    // Look for a fractional part.
+    if (this.peek() === '.' && this.isDigit(this.peekNext())) {
+      // Consume the "."
+      this.advance();
+      while (this.isDigit(this.peek())) this.advance();
+    }
+    this.addToken(TokenType.NUMBER,
+      this.source.substring(this.start, this.current));
+  }
+
+  private isDigit(c: string) {
+    return c >= '0' && c <= '9';
+  }
+
+  private string() {
+    while (this.peek() !== '"' && !this.isAtEnd()) {
+      if (this.peek() === '\n') this.line++;
+      this.advance();
+    }
+
+    if (this.isAtEnd()) {
+      error(this.line, "Unterminated string.");
+      return;
+    }
+
+    this.advance();
+
+    const value: string = this.source.substring(this.start + 1, this.current - 1);
+    this.addToken(TokenType.STRING, value, {});
+  }
+
+  private match(expected: string) {
+    if (this.isAtEnd()) return false;
+    if (this.source.charAt(this.current) !== expected) return false;
+
+    this.current++;
+    return true;
+  }
+
+  private peek(): string {
+    if (this.isAtEnd()) return '\0';
+    return this.source.charAt(this.current);
+  }
+
+  private peekNext() {
+    if (this.current + 1 >= this.source.length) return '\0';
+    return this.source.charAt(this.current + 1);
+  }
+
+  // counsumes the next character and returns it
+  private advance(): string {
+    return this.source.charAt(this.current++);
+  }
+
+  private addToken(type: TokenType, text?: string, literal?: object | null): void {
+    if (!literal) {
+      this.tokens.push(new Token(type, text || '', {}, this.line));
+    } else {
+      this.tokens.push(new Token(type, text || '', literal, this.line));
+    }
+  }
+
+  allTokens(): void {
+    console.log(this.tokens);
   }
 
   private scanToken(): void {
@@ -104,87 +194,5 @@ export class Scanner {
         }
         break;
     }
-  }
-
-  private identifier(): void {
-    while (this.isAlphaNumeric(this.peek())) this.advance();
-    this.addToken(TokenType.IDENTIFIER);
-  }
-
-  private isAlpha(c: string): boolean {
-    return (c >= 'a' && c <= 'z') ||
-      (c >= 'A' && c <= 'Z') ||
-      c === '_';
-  }
-
-  private isAlphaNumeric(c: string): boolean {
-    return this.isAlpha(c) || this.isDigit(c);
-  }
-
-  private number() {
-    while (this.isDigit(this.peek())) this.advance();
-    // Look for a fractional part.
-    if (this.peek() === '.' && this.isDigit(this.peekNext())) {
-      // Consume the "."
-      this.advance();
-      while (this.isDigit(this.peek())) this.advance();
-    }
-    this.addToken(TokenType.NUMBER,
-      this.source.substring(this.start, this.current));
-  }
-
-  private isDigit(c: string) {
-    return c >= '0' && c <= '9';
-  }
-
-  private string() {
-    while (this.peek() !== '"' && !this.isAtEnd()) {
-      if (this.peek() === '\n') this.line++;
-      this.advance();
-    }
-
-    if (this.isAtEnd()) {
-      error(this.line, "Unterminated string.");
-      return;
-    }
-
-    this.advance();
-
-    const value: string = this.source.substring(this.start + 1, this.current - 1);
-    this.addToken(TokenType.STRING, value, {});
-  }
-
-  private match(expected: string) {
-    if (this.isAtEnd()) return false;
-    if (this.source.charAt(this.current) !== expected) return false;
-
-    this.current++;
-    return true;
-  }
-
-  private peek(): string {
-    if (this.isAtEnd()) return '\0';
-    return this.source.charAt(this.current);
-  }
-
-  private peekNext() {
-    if (this.current + 1 >= this.source.length) return '\0';
-    return this.source.charAt(this.current + 1);
-  }
-
-  private advance(): string {
-    return this.source.charAt(this.current++);
-  }
-
-  private addToken(type: TokenType, text?: string, literal?: object | null): void {
-    if (!literal) {
-      this.tokens.push(new Token(type, text || '', {}, this.line));
-    } else {
-      this.tokens.push(new Token(type, text || '', literal, this.line));
-    }
-  }
-
-  allTokens(): void {
-    console.log(this.tokens);
   }
 }
